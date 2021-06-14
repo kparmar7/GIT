@@ -1,6 +1,336 @@
-line 1
-line 2
-line 3
-line 4
-line 5
+  Hi There,
+
+  In this video we will see how to connect with MySQL,,
+  I have downloaded schema ,, LINK i will provide in desc,,, u can use same schema ,,, ok ?
+
+  https://www.mysqltutorial.org/mysql-sample-database.aspx
+
+  I am using schema from above link ,,,
+
+  Now, I show u picture of table JOINS ,,,, u can pause the video and refer it... ok?
+
+  We will be using these table for creating Jango Queries
+
+  ok ?
+  #----------------------------
+  DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'classicmodels',
+        'USER' : 'root',
+        'PASSWORD':'kparmar7',
+    }
+}
+
+connection is established successfully
+
+#---------------------------------------
+(venv) C:\Users\hp\PycharmProjects\DjangoSQL\SQLDemo>pip list
+Package     Version
+----------- -------
+asgiref     3.3.4
+Django      3.2.3
+mysqlclient 2.0.3
+pip         21.1.2
+pytz        2021.1
+setuptools  57.0.0
+sqlparse    0.4.1
+********************************
+
+
+
+1    select * from products;
+A    data = Products.objects.all()
+
+2   SELECT * FROM classicmodels.products LIMIT 10;
+    select pk, productcode,  productname from products LIMIT 10;
+A   data = Products.objects.all()[:10]
+A   data = Products.objects.all()[:10] >> change JINGA code <p>{{d.productcode}} :: {{d.productname}}</p>
+
+
+3  select productcode,  productname from products order by productcode LIMIT 10;
+A  data = Products.objects.all().order_by('productcode')[:10]
+
+3  select productcode,  productname from products order by quantityinstock LIMIT 10;
+3  OR  >> select productcode,  productname from products order by quantityinstock ASC LIMIT 10;
+A  data = Products.objects.all().order_by('quantityinstock')[:10]
+
+3  select productcode,  productname from products order by quantityinstock DESC LIMIT 10;
+A  data = Products.objects.all().order_by('-quantityinstock')[:10]
+
+3  select productcode,  productname from products order by productcode ASC, quantityinstock DESC LIMIT 10;
+3  OR >>elect productcode,  productname from products order by productcode ASC LIMIT 10;
+A  data = Products.objects.all().order_by( 'productcode', '-quantityinstock',)[:10]
+
+4 (where) select productcode,  productname from classicmodels.products where productLine='Motorcycles';
+A         data = Products.objects.all().filter(productline='Motorcycles')
+          data = Products.objects.filter(productline='Motorcycles')
+
+4 (AND)  select productcode,  productname from classicmodels.products where productcode='S12_2823' and productname='2002 Suzuki XREO';
+A        data = Products.objects.filter( productcode='S12_2823', productname='2002 Suzuki XREO')
+
+4 (OR)   select productcode,  productname from classicmodels.products where productScale='1:12' or productname='1958 Setra Bus';
+A        data = Products.objects.filter(Q(productscale='1:12') | Q(productname='1958 Setra Bus') )
+
+4 (AND)  select productcode,  productname from classicmodels.products where productcode='S12_2823' and productname='2002 Suzuki XREO';
+'''There are two solutions for this , '''
+'''First'''data = Products.objects.filter( productcode='S12_2823', productname='2002 Suzuki XREO')
+'''Second'''data = Products.objects.filter( Q(productcode='S12_2823') & Q(productname='2002 Suzuki XREO'))
+
+4 (OR AND) select productcode,  productname from classicmodels.products where
+           productScale='1:12' or productname='1958 Setra Bus' and productLine='Classic Cars';
+           data = Products.objects.filter(Q(productscale='1:12') | Q(productname='1958 Setra Bus') & Q(productline = 'Classic Cars'))
+4 (AND OR) select productcode,  productname from classicmodels.products where
+           productScale='1:12' and productname='1958 Setra Bus' or productLine='Classic Cars';
+           data = Products.objects.filter(Q(productscale='1:12') & Q(productname='1958 Setra Bus') | Q(productline = 'Classic Cars'))
+
+5 (Select Specific Columns) select productcode, productname from classicmodels.products;
+                            data = Products.objects.values_list('productcode', 'productname')
+
+5 (Select Specific Columns + WHERE) select productcode,  productname from classicmodels.products where productLine='Classic Cars';
+                                    data = Products.objects.values_list('productcode', 'productname').filter(productline='Classic Cars')
+
+5 (Select Single Column) select productname from classicmodels.products;
+                         data = Products.objects.values_list('productname', flat=True)
+
+6 (NOT) SELECT  * FROM classicmodels.products where  NOT productCode='S10_1678'  LIMIT 5;
+Way 1   data = Products.objects.all().exclude(productcode='S10_1678')[:5]
+-----
+Way 2   data = Products.objects.filter(~Q(productcode='S10_1678'))[:5]
+-----
+
+7 (COUNT)
+    SELECT COUNT(*) FROM classicmodels.products; >> 110
+    data = Products.objects.count()
+
+    SELECT COUNT(*) FROM classicmodels.products where productLine='Motorcycles';  >> 13
+    data = Products.objects.filter(productline='Motorcycles').count()
+
+    SELECT COUNT(productLine) FROM classicmodels.products ; >> 110
+    data = Products.objects.select_related('productline').aggregate(PL=Count('productline'))
+    print(data['PL'])
+
+8 (Select Specific Columns) select productcode, productname from classicmodels.products;
+                            data = Products.objects.values_list('productcode', 'productname') #('S10_1678', '1969 Harley Davidson Ultimate Chopper')
+                            {{i.0}}  :: {{i.1}}
+
+                            data = Products.objects.values('productcode', 'productname')      #{'productcode': 'S10_1678', 'productname': '1969 Harley Davidson Ultimate Chopper'}
+                            {{i.productcode}}  :: {{i.productname}}
+
+8 (Select Specific Columns + WHERE) select productcode,  productname from classicmodels.products where productLine='Classic Cars';
+                                    data = Products.objects.values_list('productcode', 'productname').filter(productline='Classic Cars')
+                                                                            (OR)
+                                    data = Products.objects.filter(productline='Classic Cars').values_list('productcode', 'productname')
+                                    ------------------------------------------------------------------------------------------------------
+                                    data = Products.objects.values('productcode', 'productname').filter(productline='Classic Cars')
+                                                                            (OR)
+                                    data = Products.objects.filter(productline='Classic Cars').values('productcode', 'productname')
+
+8 (Select Single Column) select productname from classicmodels.products;
+                         data = Products.objects.values_list('productname', flat=True)
+                         data = Products.objects.values('productname')
+
+                         values_list  >> DATA comes in the form of TUPLE  >> {{i.0}}  :: {{i.1}}
+                         values       >> DATA comes in the form of DICT   >> {{i.productcode}}  :: {{i.productname}}
+
+
+9 How to use multiple databases, import data in model and fetch data in views.py?
+
+step 1 --- connect multiple db in settings.py DATABASES dict
+step 2 --- py manage.py inspectdb --database=MY_SQL_SYS > selectApp\SYSmodels.py
+step 3 ---     def __str__(self):
+                    return f'{self.name} :: {self.date} :: {self.time}'
+step 4 --- Patients.objects.using('MY_SQL_SYS')
+
+
+10 (> , >=) select productcode, productname from classicmodels.products where quantityInStock > 9000;
+            data = Products.objects.filter(quantityinstock__gt = 9000).values_list('productcode', 'productname')
+
+            select productcode, productname, quantityInStock from classicmodels.products where quantityInStock >= 9000;
+            data = Products.objects.filter(quantityinstock__gte = 9000).values_list('productcode', 'productname','quantityinstock')
+
+10 (<, <=)  select productcode, productname,quantityInStock from classicmodels.products where quantityInStock < 1000;
+            data = Products.objects.filter(quantityinstock__lt = 1000).values_list('productcode', 'productname','quantityinstock')
+
+            select productcode, productname,quantityInStock from classicmodels.products where quantityInStock <= 1000;
+            data = Products.objects.filter(quantityinstock__lte = 1000).values_list('productcode', 'productname','quantityinstock')
+
+
+
+step 1
+'POSTGERSQL': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER' : 'postgres',
+        'PASSWORD':'kparmar7',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    },
+
+step 2 --- pip install psycopg2
+step 3 --- py manage.py inspectdb --database=POSTGERSQL GREATETHAN selectApp\PGSQLmodels.py
+
+
+11 (raw sql query)
+    select productcode,  productname from classicmodels.products where
+    productScale='1:12' and productname='1958 Setra Bus' or productLine='Classic Cars';
+
+    data = Products.objects.raw("select productCode,  productName from products where \
+                                productScale=%s and productName=%s or productLine=%s",['1:12','1958 Setra Bus','Classic Cars'])
+
+    # Raw query must include the primary key
+
+12  (raw sql query)
+    1) how to fetch singel, multiple, all, DICT and tuple data result
+        try:
+            cursor = connections['POSTGERSQL'].cursor()
+            cursor.execute("select * from Company")
+            # data = cursor.fetchone()
+            # data = cursor.fetchall()[:10]
+            # data = dictfetchall(cursor)
+            data = namedtuplefetchall(cursor)
+            # print(data.query)
+        finally:
+            cursor.close()
+    2) we have seen how to use DEFAULT database and any other database using CONNECTIONS
+    connections['default', 'POSTGERSQL', 'MYSQL'].cursor()
+    3) we must close connection    ------ cursor.close()
+    4) we need to iterate data in HTML page in the form of jinja code using
+    for tuple -- {{i.0}}  :: {{i.1}}
+    for dict  -- {{i.productcode}}  :: {{i.productname}}
+    5) we can execute stored procedutes ,queries, we can create triggers ,, functins
+    using  cursor.execute(QUERY + STORED PROC + TRIGGER + FUNCTION)
+
+
+14 (LIKE 'XXX%')
+    __startswith  -- Without Foreignkey
+    select productcode, productname, productline from classicmodels.products where productname LIKE '19%';
+    data = Products.objects.filter(productname__startswith = '19').values_list('productcode', 'productname', 'productline')
+
+    __startswith  -- With Foreignkey
+    select productcode, productname, productline from classicmodels.products where productline LIKE 'Motor%';
+    Case Sensitive -- __startswith
+    data = Products.objects.filter(productline__productline__startswith = 'Motor').values_list('productcode', 'productname', 'productline')
+    No Case Sensitivity -- __startswith
+    data = Products.objects.filter(productline__productline__istartswith = 'motor').values_list('productcode', 'productname', 'productline')
+
+15 (LIKE '%XXX')
+    __startswith  -- Without Foreignkey
+    Case Sensitive -- __startswith
+    select productcode, productname, productline from classicmodels.products where productname LIKE '%r';
+    data = Products.objects.filter(productname__endswith = 'r').values_list('productcode', 'productname', 'productline')
+    No Case Sensitivity -- __startswith
+    select productcode, productname, productline from classicmodels.products where productname LIKE '%R';
+    data = Products.objects.filter(productname__iendswith = 'R').values_list('productcode', 'productname', 'productline')
+
+    __startswith  -- With Foreignkey
+    select productcode, productname, productline from classicmodels.products where productline LIKE '%rs';
+    data = Products.objects.filter(productline__productline__iendswith = 'rs').values_list('productcode', 'productname', 'productline')
+
+16 (BETWEEN AND)
+    select productcode, productname, quantityInStock from classicmodels.products where quantityInStock between 1 and 1000;
+    data = Products.objects.filter(quantityinstock__range = (1, 1000)).values_list('productcode', 'productname', 'quantityinstock')
+
+
+
+17 (__exact)
+    SELECT  * FROM classicmodels.products where  productname =  '1969 Harley Davidson Ultimate Chopper';
+    Case Sensitive
+    data = Products.objects.filter(productname__exact = '1969 harley davidson ultimate Chopper')
+    Case inSensitive
+    data = Products.objects.filter(productname__iexact = '1969 harley davidson ultimate Chopper')
+
+    SELECT  * FROM classicmodels.products where productscale = '1:10';
+    data = Products.objects.filter(productscale = '1:10')
+
+18 (LIKE '%XXX%')
+    Case sensitive
+    SELECT  productcode, productname, productline FROM classicmodels.products WHERE  productname LIKE '%Harley%';
+    data = Products.objects.filter(productname__contains = 'Harley').values_list('productcode','productname','productline')
+
+    Case insensitive
+    SELECT  productcode, productname, productline FROM classicmodels.products WHERE  productname LIKE '%harley%';
+    data = Products.objects.filter(productname__icontains = 'harley').values_list('productcode','productname','productline')
+
+
+19 (IN ('AA', 'BB', 'CC'))
+    SELECT  productcode, productname, productline FROM
+    classicmodels.products WHERE  productcode in ('S10_1678','S10_4698','S18_2625');
+
+    data = Products.objects.filter(productcode__in=['S10_1678','S10_4698','S18_2625']).values_list('productcode', 'productname', 'productline')
+
+    HERE __in takes arguments in the form of LIST, TUPLE, STRING and QUERYSET
+
+20 (INNER JOIN)
+    SELECT `products`.`productCode`, `products`.`productName`, `products`.`productLine`, `products`.`productScale`,
+           `products`.`productVendor`, `products`.`productDescription`, `products`.`quantityInStock`, `products`.`buyPrice`, `products`.`MSRP`,
+           `productlines`.`productLine`, `productlines`.`textDescription`, `productlines`.`htmlDescription`, `productlines`.`image`
+           FROM `products`
+           INNER JOIN `productlines` ON (`products`.`productLine` = `productlines`.`productLine`)
+           data = Products.objects.select_related('productline')
+
+    SELECT `products`.`productCode`, `products`.`productName`, `products`.`productLine` FROM `products`
+    INNER JOIN `productlines` ON (`products`.`productLine` = `productlines`.`productLine`)
+    WHERE `productlines`.`textDescription`
+    LIKE Attention%
+    data = Products.objects.filter(productline__textdescription__istartswith='Attention').values_list('productcode', 'productname', 'productline')
+
+    SELECT `products`.`productCode`, `products`.`productName`, `products`.`productLine`, `products`.`productScale`,
+           `products`.`productVendor`, `products`.`productDescription`, `products`.`quantityInStock`, `products`.`buyPrice`, `products`.`MSRP`
+    FROM `products`
+    INNER JOIN `productlines` ON (`products`.`productLine` = `productlines`.`productLine`)
+    WHERE `productlines`.`textDescription` LIKE Attention%
+    data = Products.objects.filter(productline__textdescription__istartswith='Attention')
+
+
+21 (Second Largest Number)
+     SELECT productCode, productName, quantityInStock FROM classicmodels.products
+     ORDER BY quantityInStock DESC LIMIT 1 OFFSET 1;
+     data = Products.objects.values_list('productcode', 'productname', 'quantityinstock').order_by('-quantityinstock')[1]
+
+22 (How to Find rows which are having duplicate values?)
+
+    SELECT `products`.`productLine`, COUNT(`products`.`productLine`) AS `Number` FROM `products`
+    GROUP BY `products`.`productLine` HAVING COUNT(`products`.`productLine`) > 1 ORDER BY NULL
+    data = Products.objects.values('productline').annotate(Number=Count('productline')).filter(Number__gt=1)
+
+    SELECT `products`.`productLine`, COUNT(`products`.`productLine`) AS `Number` FROM `products`
+    GROUP BY `products`.`productLine` ORDER BY NULL
+    data = Products.objects.values('productline').annotate(Number=Count('productline'))
+
+23 from django.db.models import Avg, Sum, Min, Max, Count
+    SELECT  avg(quantityInStock) AS `Number` FROM classicmodels.products;
+    data = Products.objects.all().aggregate(Avg('quantityinstock'))
+
+    SELECT  max(quantityInStock) AS `Number` FROM classicmodels.products;
+    data = Products.objects.all().aggregate(Max('quantityinstock'))
+
+    SELECT  min(quantityInStock) AS `Number` FROM classicmodels.products;
+    data = Products.objects.all().aggregate(Min('quantityinstock'))
+
+    SELECT  sum(quantityInStock) AS `Number` FROM classicmodels.products;
+    data = Products.objects.all().aggregate(Sum('quantityinstock'))
+
+    SELECT  count(quantityInStock) AS `Number` FROM classicmodels.products;
+    data = Products.objects.all().aggregate(Count('quantityinstock'))
+
+24 (TemplateView)
+Example 1
+---------
+from django.views.generic import TemplateView
+class SelectView(TemplateView):
+
+    template_name = 'home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['DATA'] = Products.objects.all()[:10]
+        return context
+Example 2
+---------
+path('demo/', TemplateView.as_view(template_name = 'demo.html'), name='select'),
+
+
+
+
 
